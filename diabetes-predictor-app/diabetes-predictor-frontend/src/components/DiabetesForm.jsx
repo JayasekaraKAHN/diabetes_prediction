@@ -7,6 +7,7 @@ import {
   Loader2 
 } from 'lucide-react';
 
+// Main Form Component
 const DiabetesForm = ({ onSubmit, loading }) => {
   const [formData, setFormData] = useState({
     age: '',
