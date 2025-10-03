@@ -18,10 +18,12 @@ app.add_middleware(
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
         "http://localhost:5174",
-        "http://127.0.0.1:5174"
+        "http://127.0.0.1:5174",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -67,6 +69,10 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "model_loaded": predictor.model is not None}
+
+@app.options("/predict")
+async def predict_options():
+    return {"message": "OK"}
 
 @app.post("/predict", response_model=DiabetesPredictionResponse)
 async def predict_diabetes(request: DiabetesPredictionRequest):

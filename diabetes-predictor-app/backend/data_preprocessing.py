@@ -43,7 +43,6 @@ class DiabetesDataPreprocessor:
         # Ensure diabetes column is clean
         df['diabetes'] = df['diabetes'].fillna(0)
 
-        # --- Advanced Preprocessing ---
         # 1. Outlier handling (cap at 1st and 99th percentiles)
         outlier_cols = ['age', 'bmi', 'HbA1c_level', 'blood_glucose_level', 'hdl_cholesterol', 'triglycerides', 'sleep_hours']
         for col in outlier_cols:
@@ -52,21 +51,7 @@ class DiabetesDataPreprocessor:
                 upper = df[col].quantile(0.99)
                 df[col] = df[col].clip(lower, upper)
 
-        # 2. Log transform skewed features (add 1 to avoid log(0))
-        skewed_cols = ['bmi', 'HbA1c_level', 'blood_glucose_level', 'hdl_cholesterol', 'triglycerides']
-        for col in skewed_cols:
-            if col in df.columns:
-                df[col + '_log'] = np.log1p(df[col])
-
-        # 3. Rare category grouping for categorical features
-        rare_thresh = 0.01  # 1% threshold
-        for col in categorical_cols:
-            if col in df.columns:
-                freq = df[col].value_counts(normalize=True)
-                rare = freq[freq < rare_thresh].index
-                df[col] = df[col].replace(rare, 'Other')
-
-        # 4. Round all float columns to two decimal points
+        # 2. Round all float columns to two decimal points
         float_cols = df.select_dtypes(include=['float', 'float64']).columns
         df[float_cols] = df[float_cols].round(2)
 
@@ -181,13 +166,8 @@ class DiabetesDataPreprocessor:
         if not isinstance(data, pd.DataFrame):
             data = pd.DataFrame([data])
         
-        # Ensure all features are present
-        for feature in self.feature_names:
-            if feature not in data.columns:
-                data[feature] = 0  # or appropriate default value
-        
-        # Reorder columns to match training
-        data = data[self.feature_names]
+        # Apply feature engineering to new data (same as training)
+        data = self.feature_engineering(data)
         
         # Encode categorical features
         for feature, encoder in self.label_encoders.items():
@@ -197,6 +177,9 @@ class DiabetesDataPreprocessor:
                     lambda x: x if x in encoder.classes_ else encoder.classes_[0]
                 )
                 data[feature] = encoder.transform(data[feature])
+        
+        # Reorder columns to match training
+        data = data[self.feature_names]
         
         # Scale numerical features
         numerical_cols = ['age', 'bmi', 'HbA1c_level', 'blood_glucose_level', 
