@@ -43,26 +43,86 @@ const PredictionResult = ({ prediction, onReset }) => {
     }
   ];
 
-  //  PDF Generation
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Diabetes Risk Assessment', 105, 20, null, null, 'center');
+ const generatePDF = () => {
+  const doc = new jsPDF('p', 'pt', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let yOffset = 40;
 
+  // Report Title
+  doc.setFontSize(22);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(0, 70, 133);
+  doc.text('Diabetes Risk Assessment Report', pageWidth / 2, yOffset, { align: 'center' });
+
+  yOffset += 30;
+
+  // Patient Inputs Section
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(0);
+  doc.text('Patient Input Values', 40, yOffset);
+
+  yOffset += 20;
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+
+  const inputKeys = Object.keys(prediction).filter(key => key !== 'probability' && key !== 'prediction');
+
+  inputKeys.forEach(key => {
+    const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); // Make nice labels
+    doc.text(`${label}: ${prediction[key]}`, 50, yOffset);
+    yOffset += 15;
+  });
+
+  yOffset += 20;
+
+  // Final Prediction Section
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('Final Prediction', 40, yOffset);
+
+  yOffset += 20;
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+
+  doc.text(`Prediction Result: ${prediction.prediction === 1 ? 'At Risk - Positive' : 'Low Risk - Negative'}`, 50, yOffset);
+  yOffset += 15;
+  doc.text(`Risk Level: ${risk.level}`, 50, yOffset);
+  yOffset += 15;
+  doc.text(`Probability: ${percentage}%`, 50, yOffset);
+
+  yOffset += 25;
+
+  // Recommendations Section
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('Recommended Actions', 40, yOffset);
+
+  yOffset += 20;
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+
+  recommendations.forEach((rec, index) => {
+    doc.setFillColor(
+      rec.color === 'blue' ? 200 : rec.color === 'green' ? 200 : 230,
+      rec.color === 'blue' ? 220 : rec.color === 'green' ? 255 : 200,
+      rec.color === 'blue' ? 255 : rec.color === 'green' ? 200 : 255
+    );
+    doc.roundedRect(45, yOffset, pageWidth - 90, 40, 5, 5, 'F');
+    doc.setTextColor(0);
     doc.setFontSize(12);
-    doc.text(`Prediction Result: ${prediction.prediction === 1 ? 'At Risk - Positive' : 'Low Risk - Negative'}`, 20, 40);
-    doc.text(`Probability: ${percentage}%`, 20, 50);
-    doc.text(`Risk Level: ${risk.level}`, 20, 60);
+    doc.setFont(undefined, 'bold');
+    doc.text(`${index + 1}. ${rec.title}`, 55, yOffset + 15);
+    doc.setFont(undefined, 'normal');
+    doc.text(`${rec.description}`, 55, yOffset + 30);
+    yOffset += 50;
+  });
 
-    doc.text('Recommended Actions:', 20, 80);
-    recommendations.forEach((rec, index) => {
-      doc.text(`${index + 1}. ${rec.title} - ${rec.description}`, 25, 90 + index * 10);
-    });
+  doc.save('Diabetes_Risk_Assessment_Report.pdf');
+};
 
-    doc.text('Disclaimer: This assessment is for educational purposes only. Please consult with healthcare professionals for medical advice.', 20, 140, { maxWidth: 170 });
 
-    doc.save('Diabetes_Risk_Assessment.pdf');
-  };
+
 
   return (
     <motion.div
