@@ -166,8 +166,8 @@ class DiabetesDataPreprocessor:
         if not isinstance(data, pd.DataFrame):
             data = pd.DataFrame([data])
         
-        # Reorder columns to match training
-        data = data[self.feature_names]
+        # Apply feature engineering to new data (same as training)
+        data = self.feature_engineering(data)
         
         # Encode categorical features
         for feature, encoder in self.label_encoders.items():
@@ -177,6 +177,9 @@ class DiabetesDataPreprocessor:
                     lambda x: x if x in encoder.classes_ else encoder.classes_[0]
                 )
                 data[feature] = encoder.transform(data[feature])
+        
+        # Reorder columns to match training
+        data = data[self.feature_names]
         
         # Scale numerical features
         numerical_cols = ['age', 'bmi', 'HbA1c_level', 'blood_glucose_level', 
