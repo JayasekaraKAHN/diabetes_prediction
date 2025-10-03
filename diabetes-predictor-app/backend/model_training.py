@@ -8,6 +8,7 @@ from sklearn.model_selection import cross_val_score, GridSearchCV
 import joblib
 from data_preprocessing import DiabetesDataPreprocessor
 
+
 class DiabetesPredictor:
     def __init__(self):
         self.model = None
