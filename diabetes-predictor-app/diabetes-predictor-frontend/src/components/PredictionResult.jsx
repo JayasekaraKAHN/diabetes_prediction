@@ -9,6 +9,8 @@ import {
   RefreshCw,
   Heart
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable'; 
 
 const PredictionResult = ({ prediction, onReset }) => {
   const getRiskLevel = (probability) => {
@@ -40,6 +42,27 @@ const PredictionResult = ({ prediction, onReset }) => {
       color: 'purple'
     }
   ];
+
+  //  PDF Generation
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Diabetes Risk Assessment', 105, 20, null, null, 'center');
+
+    doc.setFontSize(12);
+    doc.text(`Prediction Result: ${prediction.prediction === 1 ? 'At Risk - Positive' : 'Low Risk - Negative'}`, 20, 40);
+    doc.text(`Probability: ${percentage}%`, 20, 50);
+    doc.text(`Risk Level: ${risk.level}`, 20, 60);
+
+    doc.text('Recommended Actions:', 20, 80);
+    recommendations.forEach((rec, index) => {
+      doc.text(`${index + 1}. ${rec.title} - ${rec.description}`, 25, 90 + index * 10);
+    });
+
+    doc.text('Disclaimer: This assessment is for educational purposes only. Please consult with healthcare professionals for medical advice.', 20, 140, { maxWidth: 170 });
+
+    doc.save('Diabetes_Risk_Assessment.pdf');
+  };
 
   return (
     <motion.div
@@ -180,7 +203,10 @@ const PredictionResult = ({ prediction, onReset }) => {
             <span>New Assessment</span>
           </button>
           
-          <button className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all font-medium flex items-center justify-center space-x-2">
+          <button
+            onClick={generatePDF} 
+            className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all font-medium flex items-center justify-center space-x-2"
+          >
             <Heart className="w-4 h-4" />
             <span>Save Results</span>
           </button>
