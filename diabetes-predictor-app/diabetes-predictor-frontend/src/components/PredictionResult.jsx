@@ -1,105 +1,202 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+  CheckCircle, 
+  AlertTriangle, 
+  Activity, 
+  TrendingUp, 
+  TrendingDown,
+  RefreshCw,
+  Heart
+} from 'lucide-react';
 
 const PredictionResult = ({ prediction, onReset }) => {
-  const getRiskColor = (riskLevel) => {
-    switch (riskLevel.toLowerCase()) {
-      case 'low':
-        return 'text-green-600 bg-green-100';
-      case 'medium':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'high':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
+  const getRiskLevel = (probability) => {
+    if (probability < 0.3) return { level: 'Low', color: 'text-green-600', bg: 'bg-green-100', border: 'border-green-200' };
+    if (probability < 0.6) return { level: 'Moderate', color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200' };
+    return { level: 'High', color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200' };
   };
 
-  const getRiskIcon = (riskLevel) => {
-    switch (riskLevel.toLowerCase()) {
-      case 'low':
-        return '✅';
-      case 'medium':
-        return '⚠️';
-      case 'high':
-        return '🚨';
-      default:
-        return 'ℹ️';
+  const risk = getRiskLevel(prediction.probability);
+  const percentage = (prediction.probability * 100).toFixed(1);
+
+  const recommendations = [
+    {
+      icon: Activity,
+      title: 'Regular Exercise',
+      description: 'Aim for 150 minutes of moderate exercise per week',
+      color: 'blue'
+    },
+    {
+      icon: Heart,
+      title: 'Balanced Diet',
+      description: 'Focus on whole foods, fiber, and limit processed sugars',
+      color: 'green'
+    },
+    {
+      icon: TrendingDown,
+      title: 'Weight Management',
+      description: 'Maintain healthy BMI through diet and exercise',
+      color: 'purple'
     }
-  };
+  ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          Prediction Result
-        </h2>
-        <p className="text-gray-600">
-          Based on the provided information
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="text-center p-4 border rounded-lg">
-          <div className="text-3xl font-bold text-blue-600 mb-2">
-            {(prediction.probability * 100).toFixed(1)}%
-          </div>
-          <div className="text-gray-600">Probability</div>
-        </div>
-
-        <div className="text-center p-4 border rounded-lg">
-          <div className={`text-xl font-bold px-3 py-1 rounded-full ${getRiskColor(prediction.risk_level)}`}>
-            {getRiskIcon(prediction.risk_level)} {prediction.risk_level} Risk
-          </div>
-          <div className="text-gray-600 mt-2">Risk Level</div>
-        </div>
-      </div>
-
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-gray-800 mb-2">Assessment:</h3>
-        <p className="text-gray-700">{prediction.message}</p>
-      </div>
-
-      {prediction.risk_level.toLowerCase() === 'high' && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <h4 className="font-semibold text-red-800 mb-2">Recommendations:</h4>
-          <ul className="list-disc list-inside text-red-700 space-y-1">
-            <li>Consult with a healthcare professional immediately</li>
-            <li>Monitor your blood sugar levels regularly</li>
-            <li>Consider lifestyle changes including diet and exercise</li>
-            <li>Schedule regular health check-ups</li>
-          </ul>
-        </div>
-      )}
-
-      {prediction.risk_level.toLowerCase() === 'medium' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h4 className="font-semibold text-yellow-800 mb-2">Recommendations:</h4>
-          <ul className="list-disc list-inside text-yellow-700 space-y-1">
-            <li>Consider consulting with a healthcare professional</li>
-            <li>Adopt a healthier diet and regular exercise routine</li>
-            <li>Monitor your health metrics regularly</li>
-            <li>Reduce risk factors like smoking and excessive alcohol</li>
-          </ul>
-        </div>
-      )}
-
-      <div className="text-center">
-        <button
-          onClick={onReset}
-          className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 overflow-hidden"
+    >
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-8 text-white text-center">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring" }}
+          className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4"
         >
-          Make Another Prediction
-        </button>
+          {risk.level === 'Low' ? (
+            <CheckCircle className="w-10 h-10 text-green-300" />
+          ) : risk.level === 'Moderate' ? (
+            <AlertTriangle className="w-10 h-10 text-yellow-300" />
+          ) : (
+            <Activity className="w-10 h-10 text-red-300" />
+          )}
+        </motion.div>
+        <h2 className="text-3xl font-bold mb-2">Diabetes Risk Assessment</h2>
+        <p className="text-blue-100">Based on your health profile</p>
       </div>
 
-      <div className="mt-6 text-xs text-gray-500 text-center">
-        <p>
-          <strong>Disclaimer:</strong> This prediction is based on machine learning algorithms 
-          and should not replace professional medical advice. Please consult with healthcare 
-          professionals for accurate diagnosis and treatment.
-        </p>
+      <div className="p-8">
+        {/* Risk Score */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className={`border-2 ${risk.border} ${risk.bg} rounded-2xl p-6 text-center mb-8`}
+        >
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <div className={`text-4xl font-bold ${risk.color}`}>
+              {percentage}%
+            </div>
+            <div className="text-left">
+              <div className={`text-xl font-semibold ${risk.color}`}>
+                {risk.level} Risk
+              </div>
+              <div className="text-sm text-gray-600">
+                Probability of developing diabetes
+              </div>
+            </div>
+          </div>
+          
+          {/* Risk Meter */}
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${percentage}%` }}
+              transition={{ delay: 0.5, duration: 1 }}
+              className={`h-3 rounded-full ${
+                risk.level === 'Low' ? 'bg-green-500' :
+                risk.level === 'Moderate' ? 'bg-yellow-500' : 'bg-red-500'
+              }`}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>0%</span>
+            <span>50%</span>
+            <span>100%</span>
+          </div>
+        </motion.div>
+
+        {/* Prediction Details */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+        >
+          <div className="bg-gray-50 rounded-2xl p-6">
+            <h3 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span>Prediction Result</span>
+            </h3>
+            <p className={`text-lg font-bold ${
+              prediction.prediction === 1 ? 'text-red-600' : 'text-green-600'
+            }`}>
+              {prediction.prediction === 1 ? 'At Risk - Positive' : 'Low Risk - Negative'}
+            </p>
+          </div>
+
+          <div className="bg-gray-50 rounded-2xl p-6">
+            <h3 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+              <TrendingUp className="w-5 h-5 text-blue-500" />
+              <span>Confidence Level</span>
+            </h3>
+            <p className="text-lg font-bold text-blue-600">
+              {Math.max(prediction.probability, 1 - prediction.probability).toFixed(3)}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Recommendations */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mb-8"
+        >
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Recommended Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {recommendations.map((rec, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                className="bg-white border border-gray-200 rounded-2xl p-4 text-center hover:shadow-lg transition-shadow"
+              >
+                <div className={`w-12 h-12 rounded-full bg-${rec.color}-100 flex items-center justify-center mx-auto mb-3`}>
+                  <rec.icon className={`w-6 h-6 text-${rec.color}-600`} />
+                </div>
+                <h4 className="font-semibold text-gray-800 mb-2">{rec.title}</h4>
+                <p className="text-sm text-gray-600">{rec.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Action Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center"
+        >
+          <button
+            onClick={onReset}
+            className="px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all font-medium shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>New Assessment</span>
+          </button>
+          
+          <button className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all font-medium flex items-center justify-center space-x-2">
+            <Heart className="w-4 h-4" />
+            <span>Save Results</span>
+          </button>
+        </motion.div>
+
+        {/* Disclaimer */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="text-center text-sm text-gray-500 mt-6"
+        >
+          This assessment is for educational purposes only. Please consult with healthcare professionals for medical advice.
+        </motion.p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
