@@ -14,35 +14,62 @@ class DiabetesDataPreprocessor:
         self.feature_names = []
         
     def load_and_clean_data(self, file_path):
-        """Load and clean the diabetes dataset"""
+        """Load and clean the diabetes dataset with advanced preprocessing"""
         df = pd.read_csv(file_path)
-        
-        # Handle missing values in key columns
+
+        # Handle missing values
         df['age'] = df['age'].fillna(df['age'].median())
         df['bmi'] = df['bmi'].fillna(df['bmi'].median())
         df['HbA1c_level'] = df['HbA1c_level'].fillna(df['HbA1c_level'].median())
         df['blood_glucose_level'] = df['blood_glucose_level'].fillna(df['blood_glucose_level'].median())
-        
+
         # Fill other numerical columns with median
         numerical_cols = ['hdl_cholesterol', 'triglycerides', 'sleep_hours']
         for col in numerical_cols:
             df[col] = df[col].fillna(df[col].median())
-        
+
         # Fill categorical columns with mode
         categorical_cols = ['gender', 'smoking_history', 'obesity_status', 
                           'dietary_habits', 'alcohol_use']
         for col in categorical_cols:
             df[col] = df[col].fillna(df[col].mode()[0] if not df[col].mode().empty else 'Unknown')
-        
+
         # Fill binary columns with 0
         binary_cols = ['hypertension', 'heart_disease', 'physical_inactivity', 
                       'prediabetes', 'high_blood_pressure']
         for col in binary_cols:
             df[col] = df[col].fillna(0)
-        
+
         # Ensure diabetes column is clean
         df['diabetes'] = df['diabetes'].fillna(0)
-        
+
+        # --- Advanced Preprocessing ---
+        # 1. Outlier handling (cap at 1st and 99th percentiles)
+        outlier_cols = ['age', 'bmi', 'HbA1c_level', 'blood_glucose_level', 'hdl_cholesterol', 'triglycerides', 'sleep_hours']
+        for col in outlier_cols:
+            if col in df.columns:
+                lower = df[col].quantile(0.01)
+                upper = df[col].quantile(0.99)
+                df[col] = df[col].clip(lower, upper)
+
+        # 2. Log transform skewed features (add 1 to avoid log(0))
+        skewed_cols = ['bmi', 'HbA1c_level', 'blood_glucose_level', 'hdl_cholesterol', 'triglycerides']
+        for col in skewed_cols:
+            if col in df.columns:
+                df[col + '_log'] = np.log1p(df[col])
+
+        # 3. Rare category grouping for categorical features
+        rare_thresh = 0.01  # 1% threshold
+        for col in categorical_cols:
+            if col in df.columns:
+                freq = df[col].value_counts(normalize=True)
+                rare = freq[freq < rare_thresh].index
+                df[col] = df[col].replace(rare, 'Other')
+
+        # 4. Round all float columns to two decimal points
+        float_cols = df.select_dtypes(include=['float', 'float64']).columns
+        df[float_cols] = df[float_cols].round(2)
+
         return df
     
     def feature_engineering(self, df):
@@ -186,7 +213,11 @@ if __name__ == "__main__":
     preprocessor = DiabetesDataPreprocessor()
     X, y, df = preprocessor.preprocess_data('diabetes_raw_dataset.csv')
     X_train, X_test, y_train, y_test = preprocessor.prepare_training_data(X, y)
-    
+
+    # Save cleaned data to new CSV file
+    df.to_csv('diabetes_cleaned_dataset.csv', index=False)
+    print("Cleaned data saved to diabetes_cleaned_dataset.csv")
+
     print(f"Training set shape: {X_train.shape}")
     print(f"Test set shape: {X_test.shape}")
     print(f"Features: {preprocessor.feature_names}")
