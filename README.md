@@ -39,23 +39,23 @@ A **full-stack interactive web app** to **predict the risk of diabetes** using t
 - Progress bar shows your risk visually  
 - Reset form to test with new inputs  
 
----
+## 🧩 Components
 
-🧩 Components
+| Component | Description |
+|-----------|-------------|
+| App.jsx | Main app logic and state management |
+| DiabetesForm.jsx | Form for user health input |
+| redictionResult.jsx | Displays prediction results with interactive progress bar |
 
-App.jsx – Main app logic and state management
-DiabetesForm.jsx – Form for user health input
-redictionResult.jsx – Displays prediction results with interactive progress bar
+## 📝 Contributors
 
----
-📝 Contributors
+| Name |
+|------|
+| Wehara Soyza |
+| Hirnu Jayasekara |
+| Chaturika Piyumali |
+| Ojani Jayasinghe |
 
-Wehara Soyza
-Hirnu Jayasekara
-Chaturika Piyumali
-Ojani Jayasinghe
-
----
 
 
 
