@@ -66,9 +66,9 @@ class DiabetesPredictionResponse(BaseModel):
     risk_level: str
     message: str
 
-@app.get("/")
-async def root():
-    return {"message": "Diabetes Prediction API", "status": "active"}
+# @app.get("/")
+# async def root():
+#     return {"message": "Diabetes Prediction API", "status": "active"}
 
 @app.get("/health")
 async def health_check():
