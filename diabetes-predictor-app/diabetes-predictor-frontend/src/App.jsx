@@ -14,13 +14,12 @@ function App() {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:8000/predict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+     const response = await fetch('https://diabetesprediction-production-b61b.up.railway.app/api/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData),
+});
+
 
       if (!response.ok) {
         throw new Error('Prediction failed');
@@ -162,5 +161,7 @@ function App() {
     </div>
   );
 }
+
+export default App;
 
 export default App;
