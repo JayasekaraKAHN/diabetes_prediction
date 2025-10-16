@@ -5,11 +5,20 @@ import pandas as pd
 import joblib
 from typing import Optional
 import uvicorn
+from fastapi.staticfiles import StaticFiles
+import os
 
 # Import your classes
 from model_training import DiabetesPredictor
 
 app = FastAPI(title="Diabetes Prediction API", version="1.0.0")
+
+# Serve frontend build
+frontend_dist_path = os.path.join(os.path.dirname(__file__), "../diabetes-predictor-frontend/dist")
+if not os.path.exists(frontend_dist_path):
+    raise Exception("Frontend 'dist/' folder not found. Run 'npm run build' in diabetes-predictor-frontend.")
+app.mount("/", StaticFiles(directory=frontend_dist_path, html=True), name="frontend")
+
 
 # CORS middleware
 app.add_middleware(
