@@ -13,12 +13,6 @@ from model_training import DiabetesPredictor
 
 app = FastAPI(title="Diabetes Prediction API", version="1.0.0")
 
-# Serve frontend build
-frontend_dist_path = os.path.join(os.path.dirname(__file__), "../diabetes-predictor-frontend/dist")
-if not os.path.exists(frontend_dist_path):
-    raise Exception("Frontend 'dist/' folder not found. Run 'npm run build' in diabetes-predictor-frontend.")
-app.mount("/", StaticFiles(directory=frontend_dist_path, html=True), name="frontend")
-
 
 # CORS middleware
 app.add_middleware(
@@ -29,7 +23,8 @@ app.add_middleware(
         "http://localhost:5174",
         "http://127.0.0.1:5174",
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "diabetesprediction-production-b61b.up.railway.app"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -83,15 +78,49 @@ async def health_check():
 async def predict_options():
     return {"message": "OK"}
 
-@app.post("/predict", response_model=DiabetesPredictionResponse)
+@app.post("/api/predict", response_model=DiabetesPredictionResponse)
 async def predict_diabetes(request: DiabetesPredictionRequest):
     try:
         # Convert request to dictionary
         input_data = request.dict()
-        
+
+        # --- Validation and Sanitization ---
+        # Numeric ranges
+        numeric_ranges = {
+            "age": (0, 120),
+            "bmi": (10, 60),
+            "HbA1c_level": (3, 10),
+            "blood_glucose_level": (50, 300),
+            "hdl_cholesterol": (10, 100),
+            "triglycerides": (50, 300),
+            "sleep_hours": (0, 12)
+        }
+
+        for key, (min_val, max_val) in numeric_ranges.items():
+            value = input_data.get(key)
+            if value is None or not isinstance(value, (int, float)):
+                input_data[key] = (min_val + max_val) / 2  # default to midpoint
+            else:
+                # Clamp value to min/max
+                input_data[key] = max(min_val, min(max_val, value))
+
+        # Categorical fields allowed values
+        allowed_categories = {
+            "gender": ["M", "F"],
+            "smoking_history": ["never", "former", "current", "ever", "not current", "No Info"],
+            "obesity_status": ["Underweight", "Normal", "Overweight", "Obese"],
+            "dietary_habits": ["Healthy", "High-sugar", "High-energy", "Low-fiber", "Mixed"],
+            "alcohol_use": ["None", "Moderate", "Heavy"]
+        }
+
+        for key, allowed in allowed_categories.items():
+            value = input_data.get(key)
+            if value not in allowed:
+                input_data[key] = allowed[0]  # default to first allowed category
+
         # Make prediction
         prediction, probability = predictor.predict_class(input_data)
-        
+
         # Determine risk level
         if probability < 0.3:
             risk_level = "Low"
@@ -102,14 +131,14 @@ async def predict_diabetes(request: DiabetesPredictionRequest):
         else:
             risk_level = "High"
             message = "High risk of diabetes. Please consult a healthcare professional."
-        
+
         return DiabetesPredictionResponse(
             prediction=prediction,
             probability=probability,
             risk_level=risk_level,
             message=message
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
@@ -137,6 +166,13 @@ async def get_feature_info():
     }
     
     return feature_info
+
+# Serve frontend build
+frontend_dist_path = os.path.join(os.path.dirname(__file__), "../diabetes-predictor-frontend/dist")
+if not os.path.exists(frontend_dist_path):
+    raise Exception("Frontend 'dist/' folder not found. Run 'npm run build' in diabetes-predictor-frontend.")
+app.mount("/", StaticFiles(directory=frontend_dist_path, html=True), name="frontend")
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
