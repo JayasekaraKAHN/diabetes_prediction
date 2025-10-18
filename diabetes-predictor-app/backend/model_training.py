@@ -1,13 +1,18 @@
+
+
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score
 from sklearn.model_selection import cross_val_score, GridSearchCV
 import joblib
-from data_preprocessing import DiabetesDataPreprocessor
 
+
+
+ # Import and preprocess the dataset
+from data_preprocessing import DiabetesDataPreprocessor
 
 class DiabetesPredictor:
     def __init__(self):
@@ -15,18 +20,27 @@ class DiabetesPredictor:
         self.preprocessor = DiabetesDataPreprocessor()
         self.best_params = None
         
+    # Split training and testing sets
     def train_models(self, file_path, model_type='random_forest'):
         """Train different models and select the best one"""
-        
-        # Preprocess data
+
         X, y, df = self.preprocessor.preprocess_data(file_path)
+
+        # Divide inputs and outputs
         X_train, X_test, y_train, y_test = self.preprocessor.prepare_training_data(X, y)
-        
+   
+
+
+
+
+
+
         print("Dataset Info:")
         print(f"Total samples: {len(df)}")
         print(f"Diabetes cases: {y.sum()} ({y.mean()*100:.2f}%)")
         print(f"Non-diabetes cases: {len(y) - y.sum()} ({(1-y.mean())*100:.2f}%)")
         
+        # Model implementation
         if model_type == 'random_forest':
             self.model = RandomForestClassifier(
                 n_estimators=200,
@@ -35,17 +49,28 @@ class DiabetesPredictor:
                 min_samples_leaf=2,
                 random_state=42
             )
+
+        # Model implementation l0gistic regression
         elif model_type == 'logistic_regression':
             self.model = LogisticRegression(random_state=42, max_iter=1000)
+
+
+
+        # Model implementation Support wector machine 
         elif model_type == 'svm':
             self.model = SVC(probability=True, random_state=42)
+
+
+
         else:
             raise ValueError("Unsupported model type")
         
-        # Train model
+
+        # Model Training
         self.model.fit(X_train, y_train)
         
-        # Evaluate model
+
+        # Model Evaluation
         train_score = self.model.score(X_train, y_train)
         test_score = self.model.score(X_test, y_test)
         
