@@ -1,9 +1,13 @@
+# backend/data_preprocessing.py
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
 import joblib
+
+
+# Diabetes Data Preprocessor Class
 
 class DiabetesDataPreprocessor:
     def __init__(self):
@@ -17,7 +21,7 @@ class DiabetesDataPreprocessor:
         """Load and clean the diabetes dataset with advanced preprocessing"""
         df = pd.read_csv(file_path)
 
-        # Handle missing values
+        # Handle missing values median
         df['age'] = df['age'].fillna(df['age'].median())
         df['bmi'] = df['bmi'].fillna(df['bmi'].median())
         df['HbA1c_level'] = df['HbA1c_level'].fillna(df['HbA1c_level'].median())
